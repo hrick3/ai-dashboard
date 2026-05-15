@@ -661,15 +661,15 @@ let currentRange = '1M';
 let currentSector = 'all';
 let mainChartInstance = null;
 
-// ─── ALPHA VANTAGE FETCH ─────────────────────────────────────────────
+// ─── ALPHA VANTAGE FETCH (free tier) ─────────────────────────────────
 async function fetchCandles(sym) {
   if (!AV_KEY || AV_KEY === 'YOUR_AV_KEY_HERE') return null;
-  const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=${sym}&outputsize=full&apikey=${AV_KEY}`;
+  const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${sym}&outputsize=full&apikey=${AV_KEY}`;
   try {
     const res  = await fetch(url);
     if (!res.ok) return null;
     const json = await res.json();
-    if (json['Note'] || json['Information']) { console.warn('AV rate limit:', sym); return null; }
+    if (json['Note'] || json['Information']) { console.warn('AV limit hit:', sym); return null; }
     const ts = json['Time Series (Daily)'];
     if (!ts) return null;
     const candles = Object.entries(ts)
@@ -681,7 +681,7 @@ async function fetchCandles(sym) {
         h: +parseFloat(v['2. high']).toFixed(2),
         l: +parseFloat(v['3. low']).toFixed(2),
         c: +parseFloat(v['4. close']).toFixed(2),
-        v: parseInt(v['6. volume'] || v['5. volume'] || 0),
+        v: parseInt(v['5. volume'] || 0),
       }));
     return candles.length > 5 ? candles : null;
   } catch(e) {
